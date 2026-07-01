@@ -382,7 +382,10 @@ impl Render for TextViewState {
         node_cx.style = self.text_view_style.clone();
 
         v_flex()
-            .size_full()
+            .w_full()
+            .min_w_0()
+            .when(self.scrollable, |this| this.size_full())
+            .when(!self.scrollable, |this| this.h_auto())
             .map(|this| match &mut self.parsed_error {
                 None => this.child(document.render_root(
                     if self.scrollable {
