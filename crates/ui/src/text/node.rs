@@ -7,8 +7,8 @@ use std::{
 
 use gpui::{
     AnyElement, App, DefiniteLength, Div, ElementId, FontStyle, FontWeight, Half, HighlightStyle,
-    InteractiveElement as _, IntoElement, Length, ObjectFit, ParentElement, SharedString,
-    SharedUri, StatefulInteractiveElement, Styled, StyledImage as _, Window, div, img,
+    InteractiveElement as _, IntoElement, ObjectFit, ParentElement, SharedString, SharedUri,
+    StatefulInteractiveElement, Styled, StyledImage as _, Window, div, img,
     prelude::FluentBuilder as _, px, relative, rems,
 };
 use markdown::mdast;
@@ -1211,7 +1211,11 @@ impl BlockNode {
         cx: &mut App,
     ) -> impl IntoElement {
         const DEFAULT_LENGTH: usize = 5;
-        const MAX_LENGTH: usize = 150;
+        const MIN_COLUMN_CHARS: usize = 8;
+        const MAX_COLUMN_CHARS: usize = 56;
+        const COLUMN_CHAR_WIDTH_PX: f32 = 8.;
+        const MIN_COLUMN_WIDTH_PX: f32 = 64.;
+        const MAX_COLUMN_WIDTH_PX: f32 = 448.;
         let col_lens = match item {
             BlockNode::Table(table) => {
                 let mut col_lens = vec![];
@@ -1265,8 +1269,13 @@ impl BlockNode {
                                                 let len = col_lens
                                                     .get(ix)
                                                     .copied()
-                                                    .unwrap_or(MAX_LENGTH)
-                                                    .min(MAX_LENGTH);
+                                                    .unwrap_or(DEFAULT_LENGTH)
+                                                    .clamp(MIN_COLUMN_CHARS, MAX_COLUMN_CHARS);
+                                                let column_width =
+                                                    (len as f32 * COLUMN_CHAR_WIDTH_PX).clamp(
+                                                        MIN_COLUMN_WIDTH_PX,
+                                                        MAX_COLUMN_WIDTH_PX,
+                                                    );
 
                                                 cells.push(
                                                     div()
@@ -1280,8 +1289,10 @@ impl BlockNode {
                                                             align == ColumnumnAlign::Right,
                                                             |this| this.text_right(),
                                                         )
-                                                        .min_w_16()
-                                                        .w(Length::Definite(relative(len as f32)))
+                                                        .min_w(px(MIN_COLUMN_WIDTH_PX))
+                                                        .flex_basis(px(column_width))
+                                                        .flex_grow(len as f32)
+                                                        .flex_shrink_1()
                                                         .px_2()
                                                         .py_1()
                                                         .when(!is_last_col, |this| {
