@@ -1253,7 +1253,10 @@ impl BlockNode {
                             for (row_ix, row) in table.children.iter().enumerate() {
                                 rows.push(
                                     div()
-                                        .id("row")
+                                        .id(SharedString::from(format!(
+                                            "table-row-{}-{row_ix}",
+                                            options.ix
+                                        )))
                                         .w_full()
                                         .when(row_ix < table.children.len() - 1, |this| {
                                             this.border_b_1()
@@ -1279,7 +1282,10 @@ impl BlockNode {
 
                                                 cells.push(
                                                     div()
-                                                        .id(("cell", ix))
+                                                        .id(SharedString::from(format!(
+                                                            "table-cell-{}-{row_ix}-{ix}",
+                                                            options.ix
+                                                        )))
                                                         .overflow_hidden()
                                                         .when(
                                                             align == ColumnumnAlign::Center,
